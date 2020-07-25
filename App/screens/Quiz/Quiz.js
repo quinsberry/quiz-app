@@ -5,22 +5,28 @@ import { Button, ButtonContainer, Alert } from '../../components/common'
 
 import styles from './styles'
 
-import { computers } from '../../data'
-
-const Quiz = () => {
+const Quiz = ({ route, navigation }) => {
   const [state, setState] = React.useState({
     correctCount: 0,
-    totalCount: computers.length,
+    totalCount: 0,
   })
   const [activeQuestionIdx, setActiveQuestionIdx] = React.useState(0)
   const [answerCorrect, setAnswerCorrect] = React.useState(false)
   const [answered, setAnswered] = React.useState(false)
+  const [questions, setQuestions] = React.useState([])
+
+  React.useEffect(() => {
+    if (route.params.questions) {
+      setQuestions(route.params.questions)
+      setState({ ...state, totalCount: route.params.questions.length })
+    }
+  }, [])
 
   const nextQuestion = () => {
     const nextIdx = activeQuestionIdx + 1
 
     if (nextIdx === state.totalCount) {
-      setActiveQuestionIdx(0)
+      navigation.navigate('QuizzesList')
       setAnswered(false)
       return
     }
@@ -44,21 +50,25 @@ const Quiz = () => {
     }, 750)
   }
 
-  const question = computers[activeQuestionIdx]
+  const question = questions[activeQuestionIdx]
+  if (!question) {
+    return null
+  }
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: route.params.bgColor }]}>
       <StatusBar barStyle="light-content" />
       <SafeAreaView style={styles.safearea}>
         <View>
           <Text style={styles.text}>{question.question}</Text>
           <ButtonContainer>
-            {question.answers.map((answer) => (
-              <Button
-                key={answer.id}
-                text={answer.text}
-                onPress={() => handleAnswer(answer.correct)}
-              />
-            ))}
+            {question &&
+              question.answers.map((answer) => (
+                <Button
+                  key={answer.id}
+                  text={answer.text}
+                  onPress={() => handleAnswer(answer.correct)}
+                />
+              ))}
           </ButtonContainer>
         </View>
         <Text style={styles.text}>{`${state.correctCount}/${state.totalCount}`}</Text>
